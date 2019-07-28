@@ -12,4 +12,4 @@
 
 libname input "&origen./inputs";
 *libname trsf "&origen./transformaciones";
-*libname rslt "&origen./resultados";
+libname rslt "&origen./results";
