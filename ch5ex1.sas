@@ -4,6 +4,12 @@
 * Facultad de Ciencias. Universidad Nacional Autonoma de Mexico ;
 **********************************************************************/
 
+/***********
+* Chapter 5;
+* Exercise 1:
+***********/
+
+
 /*******************
 /* Extracción de Insumos ;
 *******************/
@@ -79,7 +85,7 @@ title;
 * Solution of the exercise
 */
 
-* a) Determine the probability function of S;
+title "a) Determine the probability function of S";
 
 * First, we calculate the convolution;
 
@@ -90,7 +96,7 @@ proc iml;
 
 	edit input.lossdist;
 	read all var _NUM_ into lossdist[colname=numVars];
-	close input.freqdist; 	
+	close input.lossdist; 	
 	
 	maxl = max(lossdist[,1]);
 	maxn = max(freqdist[,1]);
@@ -138,25 +144,80 @@ data rslt.S(drop=col:);
 	s = col1;
 	ps = col11;
 	if first.ps then psa = ps;
-	psa + ps;
-	
+	psa + ps;	
 run;
 
-title 'Total loss distribution';
-proc sgplot data=rslt.s;
-	step x=s y=ps / lineattrs=(color=green thickness=2);
-	xaxis grid;
-	yaxis grid;
+title2 "Probability function of S";
+proc print data=rslt.S label;
 run;
-title;
 
-title 'Total loss distribution';
+title2 'Total loss distribution';
 proc sgplot data=rslt.s;
 	step x=s y=ps / lineattrs=(color=green thickness=2);
 	step x=s y=psa / y2axis lineattrs=(color=brown thickness=2);
 	xaxis grid;
 	yaxis grid;
 run;
-title;
+
+
+title "b) Determine the mean and standard deviation of total payments per employee (through definition and by $E[S]=E[X]E[N]$ and $Var(S)=E[N]Var(X)+E[X]^2 Var(N)$)";
+
+proc iml;
+	edit input.freqdist;
+	read all var _NUM_ into freqdist[colname=numVars];
+	close input.freqdist; 	
+
+	edit input.lossdist;
+	read all var _NUM_ into lossdist[colname=numVars];
+	close input.lossdist; 
+	
+	print "Frequency distribution moments";
+
+	enl = "E[N]";
+	en = freqdist[,1]`*freqdist[,2];
+	en2l = "E[N^2]";
+	en2 = (freqdist[,1]#freqdist[,1])`*freqdist[,2];
+	vnl = "Var[N]";
+	vn = en2-en**2;
+	
+	print en[label=enl] en2[label=en2l] vn[label=vnl];
+	
+
+	print "Loss distribution moments, in units of 25 dollars";
+
+	exl = "E[X]";
+	ex = lossdist[,1]`*lossdist[,2];
+	ex2l = "E[X^2]";
+	ex2 = (lossdist[,1]#lossdist[,1])`*lossdist[,2];
+	vxl = "Var[X]";
+	vx = ex2-ex**2;
+	
+	print ex[label=exl] ex2[label=ex2l] vx[label=vxl];
+
+	print "Total payments per employee moments, in units of 25 dollars";
+	
+	esl = "E[S]";
+	es = ex*en;
+	vsl = "Var[S]";
+	vs = en*vx + ex**2*vn;
+	sdsl = "SD[S]";
+	sds = vs**0.5;
+	
+	print es[label=esl] sds[label=sdsl];
+	
+	call symputx("es",es,"L");
+	
+run;
+
+title "c) Calculate P[S>E[S]]";
+
+proc sql;
+	select sum(ps) label="P[S>E[S]]"
+	from rslt.S
+	where s > &es.
+	;
+quit;
+
+title 
 
 
