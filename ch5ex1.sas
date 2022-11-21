@@ -14,7 +14,7 @@
 /* Extracción de Insumos ;
 *******************/
 
-%let origen=/folders/myfolders/masp2/masp2;
+%let origen=/home/jenriqps/masp2;
 %include "&origen./configuration.sas";
 
 * Importing the loss distribution ;
