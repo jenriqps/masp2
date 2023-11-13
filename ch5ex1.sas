@@ -14,6 +14,7 @@
 /* Extracción de Insumos ;
 *******************/
 
+/* Ruta con los códigos */
 %let origen=/home/jenriqps/masp2;
 %include "&origen./configuration.sas";
 
@@ -27,6 +28,7 @@ PROC IMPORT DATAFILE=REFFILE1
 	SHEET=ex1a;
 RUN;
 
+/* Adding metadata */
 data input.lossdist (label="Loss distribution");
 	format x comma3. fx fxa comma6.3;
 	set WORK.ex1a;
@@ -46,6 +48,7 @@ PROC IMPORT DATAFILE=REFFILE1
 	SHEET=ex1b;
 RUN;
 
+/* Adding metadata */
 data input.freqdist (label="Frequency probability function");
 	format n comma3. pn pna comma6.3;
 	set work.ex1b;
@@ -90,20 +93,26 @@ title "a) Determine the probability function of S";
 * First, we calculate the convolution;
 
 proc iml;
+	/* Importing the data set input.freqdist to a matrix */
 	edit input.freqdist;
 	read all var _NUM_ into freqdist[colname=numVars];
 	close input.freqdist; 	
 
+	/* Importing the data set input.lossdist to a matrix */
 	edit input.lossdist;
 	read all var _NUM_ into lossdist[colname=numVars];
 	close input.lossdist; 	
 	
+	/* Maximum severity */
 	maxl = max(lossdist[,1]);
+	/* Maximum number of members per family*/
 	maxn = max(freqdist[,1]);
+	/* Maximum severity per family */
 	maxs = maxl*maxn;
 	nrow = maxl*maxn+1;
 	ncol = maxn+2;
 	
+	/* Matrix to have the convolution */
 	S = J(nrow,ncol+1,0);
 	
 	do i = 0 to maxs;
@@ -130,13 +139,17 @@ proc iml;
 		aux1 = S[j+1,2:10];
 		S[j+1,11]=aux1*aux2;
 	end;
-	
+
+	print S;
+
+	/* Exporting the matrix S to a data set */
 	create work.S from S;
 	append from S;
 	close work.S;
 
 run;
 
+/* Adding metadata */
 data rslt.S(drop=col:);
 	label s = "Total loss" ps = "Probability" psa = "Distribution function";
 	format s comma3. ps psa comma16.8;
@@ -160,7 +173,7 @@ proc sgplot data=rslt.s;
 run;
 
 
-title "b) Determine the mean and standard deviation of total payments per employee (through definition and by $E[S]=E[X]E[N]$ and $Var(S)=E[N]Var(X)+E[X]^2 Var(N)$)";
+title "b) Determine the mean and standard deviation of total payments per employee (through definition and by E[S]=E[X]E[N] and Var(S)=E[N]Var(X)+E[X]^2 Var(N))";
 
 proc iml;
 	edit input.freqdist;
@@ -170,6 +183,11 @@ proc iml;
 	edit input.lossdist;
 	read all var _NUM_ into lossdist[colname=numVars];
 	close input.lossdist; 
+
+	edit rslt.S;
+	read all var _NUM_ into S[colname=numVars];
+	close input.freqdist; 	
+
 	
 	print "Frequency distribution moments";
 
@@ -194,7 +212,7 @@ proc iml;
 	
 	print ex[label=exl] ex2[label=ex2l] vx[label=vxl];
 
-	print "Total payments per employee moments, in units of 25 dollars";
+	print "Total payments per employee moments, in units of 25 dollars (through E[S]=E[X]E[N] and Var(S)=E[N]Var(X)+E[X]^2 Var(N))";
 	
 	esl = "E[S]";
 	es = ex*en;
@@ -205,8 +223,23 @@ proc iml;
 	
 	print es[label=esl] sds[label=sdsl];
 	
+	/* Sending results to macrovariables to be used outside the IML procedure */
 	call symputx("es",es,"L");
+	call symputx("sds",sds,"L");
 	
+	print "Total payments per employee moments, in units of 25 dollars (through definition)";
+	eS = S[,1]`*S[,2];
+	eS2 = (S[,1]#S[,1])`*S[,2];
+	vS = eS2 - eS**2;
+	eS3 = (S[,1]##3)`*S[,2];
+	sdS = vS**0.5;
+	print eS[label=esl] sdS[label=sdsl];
+	cm3 = eS3-3*eS*eS2+2*eS**3;
+	print cm3;
+	/* Sending results to macrovariables to be used outside the IML procedure */
+	call symputx("cm3",cm3,"L");
+	call symputx("vS",vS,"L");
+
 run;
 
 title "c) Calculate P[S>E[S]]";
@@ -218,6 +251,29 @@ proc sql;
 	;
 quit;
 
-title 
+title; 
 
+title "d) Approximate P[S>E[S]] by the normal distribution";
+data work.appnormal;
+	p=1-cdf('NORMAL',&es.,&es.,&sds.);
+run;
+
+proc print data=work.appnormal;
+run;
+
+title; 
+
+title "d) Approximate P[S>E[S]] by a translated gamma distribution";
+
+data work.appgamma;
+	beta = 2*&vs./&cm3.;
+	alpha = 4*&vs.**3/&cm3.**2;
+	x0=&es.-2*&vs.**2/&cm3.;
+	p=1-cdf('GAMMA',&es.-x0,alpha,1/beta);
+run;
+
+proc print data=work.appgamma;
+run;
+
+title;
 
