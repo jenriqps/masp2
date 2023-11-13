@@ -8,8 +8,5 @@
 /* Configuraciones ;
 *******************/
 
-%let origen=/folders/myfolders/masp2/masp2;
-
 libname input "&origen./inputs";
-*libname trsf "&origen./transformaciones";
 libname rslt "&origen./results";
