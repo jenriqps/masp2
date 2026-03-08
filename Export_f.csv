@@ -1,0 +1,113 @@
+Table Name:,SPH2008
+Table Identity:,2701
+Provider Domain:,IMSS
+Provider Name:,Susie Lee
+Table Reference:,"Editor, “Tablas de Mortalidad Mexicanas: Editorial”, Revista Actuari@, (2011). Accessed: February, 2014 from http://www.revista-actuario.com/weff/sites/default/files/Tablas%20de%20Mortalidad%20Mexicanas_2.pdf"
+Content Type:,Population Mortality
+Table Description:,Seguro Popular 2008 (SPM2008) – Mujeres (Females). Minimum Age: 12 Maximum Age: 100
+EffDate:,
+Comments:,Study Data: Based on the population experience of Mexico for the period 2000-2005. Seguro Popular is a decentralized body of the Ministry of Health with administrative and operational autonomy that is responsible for the provision of health services to the population under Mexico’s system of social protection in health. Tables thus built for the establishment of insurance reserves on lives of people who are not incorporated in a scheme of a Mexican assurances. Methodology: Built with techniques utilizing Bayesian statistics. Crude rates graduated with mortality laws that allow for the application of actuarial properties of uniform distribution of deaths. Data Transcription Errors: None. Data Certified: 02/2014
+Keywords:,"Aggregate,Population mortality,Mexico"
+
+Table # ,1
+Table Description:,Seguro Popular 2008 (SPM2008) – Mujeres (Females). Minimum Age: 12 Maximum Age: 100
+Nation:,Mexico
+Scaling Factor:,0
+Data Type:,Floating Point
+"Row, Column (if applicable)->id:",Age
+"Row, Column (if applicable)->ScaleType:",Age
+"Row, Column (if applicable)->AxisName:",Age
+"Row, Column (if applicable)->MinScaleValue:",12
+"Row, Column (if applicable)->MaxScaleValue:",100
+"Row, Column (if applicable)->Increment:",1
+
+Row\Column,1
+12,0.00032052
+13,0.00038889
+14,0.00045092
+15,0.00050604
+16,0.00055442
+17,0.00059659
+18,0.00063322
+19,0.00066501
+20,0.00069262
+21,0.00071663
+22,0.00073756
+23,0.00075585
+24,0.00078368
+25,0.00081527
+26,0.00085322
+27,0.00089687
+28,0.0009461
+29,0.00100103
+30,0.00106192
+31,0.00112916
+32,0.00120322
+33,0.00128462
+34,0.00137401
+35,0.00147209
+36,0.00157966
+37,0.00169761
+38,0.00182693
+39,0.00196872
+40,0.00212423
+41,0.0022948
+42,0.00248196
+43,0.00268739
+44,0.00291294
+45,0.00316068
+46,0.00343292
+47,0.00373219
+48,0.00406132
+49,0.00442344
+50,0.00482204
+51,0.00526096
+52,0.00574451
+53,0.00627743
+54,0.00686502
+55,0.00751312
+56,0.00822826
+57,0.00901765
+58,0.00988932
+59,0.01085216
+60,0.01191604
+61,0.01334433
+62,0.01422966
+63,0.01527578
+64,0.01647605
+65,0.01783585
+66,0.0193661
+67,0.02108144
+68,0.02299957
+69,0.025141
+70,0.0275291
+71,0.03019014
+72,0.0331535
+73,0.03645181
+74,0.04012122
+75,0.0442015
+76,0.04873637
+77,0.05377354
+78,0.05936493
+79,0.0655667
+80,0.07243919
+81,0.08004683
+82,0.08845779
+83,0.09774351
+84,0.10797799
+85,0.11923675
+86,0.13159556
+87,0.14512875
+88,0.15990719
+89,0.17599582
+90,0.19345086
+91,0.21231666
+92,0.23262233
+93,0.25437823
+94,0.27757254
+95,0.3021681
+96,0.3280998
+97,0.35527286
+98,0.38356208
+99,0.41281254
+100,1
