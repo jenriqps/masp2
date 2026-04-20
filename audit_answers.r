@@ -205,7 +205,7 @@ pol2 <- pol2 %>% left_join(apv_ann_exp_t, by = c("id_policy")) # nolint
 # Reserve at time t
 pol2$res_exp_t <- pol2$apv_ben_exp_t + pol2$apv_ann_exp_t * 0.25 * pol2$gross_premium - pol2$apv_ann_exp_t * pol2$gross_premium # nolint
 # Summary of the reserves by product
-# sum_exp <- aggregate(res_exp_t ~ product, data = pol2, FUN = sum)
+sum_exp <- aggregate(res_exp_t ~ product, data = pol2, FUN = sum)
 
 # Write the results in a csv file
 write.table(pol2, file = paste0(path, "/pol2.csv"), sep = ",", row.names = FALSE, col.names = TRUE, quote=TRUE) # nolint
@@ -213,9 +213,23 @@ write.table(pol2, file = paste0(path, "/pol2.csv"), sep = ",", row.names = FALSE
 
 # Sufficiency of the reserves
 # Simulations
-
-test3 <- rLife(2, lt_exp, x = 90, k = 2, type = "Tx")
-print(test3)
+# Number of simulations
+n_sim <- 100000
+# Simulate the future lifetime of the insured at time t using the Experience mortality table # nolint
+# x_base is the age of the insured at the base date, which is the starting point of the simulation # nolint
+# Every row is a policyholder and every column is a simulation # nolint
+sim <- t(mapply(function(x) rLife(n_sim, lt_exp, x, k = 12, type = "Tx"), pol2$x_base)) # nolint
+# Simulation of the present value of the benefit at time t using the simulated future lifetime # nolint
+sim_pv_ben_t <- sim_pv_benefit(i = i, prod = pol2$product, nyears = pol2$`n-year`, ben_amt = pol2$`benefit_amount`, t = pol2$t, sim = sim) # nolint
+# Simulation of the present value of the annuity at time t using the simulated future lifetime # nolint
+sim_pv_ann_t <- sim_pv_annuity(i = i, x = pol2$x, prod = pol2$product, nyears = pol2$`n-year`, t = pol2$t, sim = sim) # nolint
+# Simulation of the present value of the losses at time t using the simulated future lifetime # nolint
+sim_pv_loss_t <- sim_pv_ben_t + sim_pv_ann_t * 0.25 * pol2$gross_premium - sim_pv_ann_t * pol2$gross_premium # nolint
+sim_pv_totloss_t <- colSums(sim_pv_loss_t)
+print(summary(sim_pv_totloss_t))
+hist(sim_pv_totloss_t, breaks = 50, main = "Distribution of the total losses at time t", xlab = "Total losses at time t") # nolint
+# Write the results in a csv file
+write.table(sim_pv_totloss_t, file = paste0(path, "/sim_pv_totloss_t.csv"), sep = ",", row.names = FALSE, col.names = TRUE, quote=TRUE) # nolint
 
 # End timing
 end <- proc.time()
