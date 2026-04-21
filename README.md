@@ -1,1 +1,1 @@
-# masp2
+Material for the "Cálculo Actuarial de Personas" and "Matemáticas Actuariales del Seguro de Personas" classes of the Universidad La Salle México and Universidad Nacional Autónoma de México, respectively.
