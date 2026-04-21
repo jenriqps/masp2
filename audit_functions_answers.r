@@ -108,7 +108,6 @@ sim_pv_benefit <- function(i, prod, nyears, ben_amt, t, sim) {
   }
   pos_tmp3 <- (n > 0) & prod3
   if (any(pos_tmp3)) {
-    # apv_ben[pos_tmp3] <- ben_amt[pos_tmp3] * ( i / d * Axn(lt, x = x[pos_tmp3] + t[pos_tmp3], n = n[pos_tmp3], i = i, type = "EV") + pxt(lt, x = x[pos_tmp3] + t[pos_tmp3], t = n[pos_tmp3], fractional = "linear") * (1+i)^(-n[pos_tmp3])) # nolint
     Tx3 <- sim[pos_tmp3, ]
     sim_pv_ben[pos_tmp3,] <- ben_amt[pos_tmp3] * (1 + i)^(-pmin(n[pos_tmp3], Tx3)) # nolint
   }
@@ -121,15 +120,15 @@ sim_pv_annuity <- function(i, x, prod, nyears, t, sim) {
   # Purpose: Calculate the actuarial present value of the annuity for each policy # nolint
   # Arguments:
   #   i: interest rate
-  #   x: vector of ages 
+  #   x: vector of ages at the base date
   #   prod: vector of product types
-  #   nyears: vector of number of years for the policy (original term, NA for whole life)
+  #   nyears: vector of number of years for the policy (original term, NA for whole life) # nolint
   #   t: vector of time since the start of the policy at the base date
-  #   sim: matrix of simulated future lifetimes (every column is a person and every row is a simulation)
+  #   sim: matrix of simulated future lifetimes (every column is a person and every row is a simulation) # nolint
   # Recycle shorter vectors if needed
   n <- length(id_pol)
   t <- rep_len(t, n)
-  # Discount rate convertible m times per year
+  # Discount rate convertible 12 times per year
   d12 <- -12 * ((1 + i)^(-1 / 12) - 1)
   # Outputs
   sim_pv_ann <- matrix(0, nrow = n, ncol = ncol(sim))

@@ -164,9 +164,8 @@ pol2 <- pol2 %>% left_join(apv_ann_t, by = c("id_policy")) # nolint
 # Reserve at time t
 pol2$res_t <- pol2$apv_ben_t + pol2$apv_ann_t * 0.25 * pol2$gross_premium - pol2$apv_ann_t * pol2$gross_premium # nolint
 # Summary of the reserves by product
-# sum <- aggregate(res_t ~ product, data = pol2, FUN = sum)
-
-
+sum_res <- aggregate(res_t ~ product, data = pol2, FUN = sum)
+tot_res <- sum(pol2$res_t)
 
 # Using the mortality experience of the company to calculate the reserves
 
@@ -174,8 +173,8 @@ pol2$res_t <- pol2$apv_ben_t + pol2$apv_ann_t * 0.25 * pol2$gross_premium - pol2
 exp <- read_excel(paste0(path, "/20251231_res_prem_exp.xlsx"), sheet = "Experience", skip = 4) # nolint
 colnames(exp) <- c("x", "qx")
 # Create the actuarial table
-omega_m <- max(e_m$x)
-x <- as.data.frame(0:omega_m)
+omega <- max(exp$x)
+x <- as.data.frame(0:omega)
 colnames(x) <- "x"
 exp2 <- left_join(x, exp, by = c("x")) %>% mutate_if(is.numeric, coalesce, 0)
 name_lt <- "Experience of Vida Plena"
@@ -189,23 +188,23 @@ x <- pol2$x
 prod <- pol2$product
 nyears <- pol2$`n-year`
 ben_amt <- pol2$`benefit_amount`
-
 apv_ben_exp_t <- apv_benefit(id_pol = id_pol, lt = lt_exp,
-                           i = i, x = x, prod = prod,
-                           nyears = nyears, ben_amt = ben_amt, t = t) # nolint
+                             i = i, x = x, prod = prod,
+                             nyears = nyears, ben_amt = ben_amt, t = t) # nolint
 colnames(apv_ben_exp_t) <- c("id_policy", "apv_ben_exp_t")
 pol2 <- pol2 %>% left_join(apv_ben_exp_t, by = c("id_policy")) # nolint
 # Actuarial present value of the 1-unit annuity at time t
 apv_ann_exp_t <- apv_annuity(id_pol = id_pol, lt = lt_exp,
-                           i = i, x = x, prod = prod,
-                           nyears = nyears, t = t) # nolint
+                             i = i, x = x, prod = prod,
+                             nyears = nyears, t = t) # nolint
 colnames(apv_ann_exp_t) <- c("id_policy", "apv_ann_exp_t")
 pol2 <- pol2 %>% left_join(apv_ann_exp_t, by = c("id_policy")) # nolint
 
 # Reserve at time t
 pol2$res_exp_t <- pol2$apv_ben_exp_t + pol2$apv_ann_exp_t * 0.25 * pol2$gross_premium - pol2$apv_ann_exp_t * pol2$gross_premium # nolint
 # Summary of the reserves by product
-sum_exp <- aggregate(res_exp_t ~ product, data = pol2, FUN = sum)
+sum_res_exp <- aggregate(res_exp_t ~ product, data = pol2, FUN = sum)
+tot_res_exp <- sum(pol2$res_exp_t)
 
 # Write the results in a csv file
 write.table(pol2, file = paste0(path, "/pol2.csv"), sep = ",", row.names = FALSE, col.names = TRUE, quote=TRUE) # nolint
@@ -218,16 +217,29 @@ n_sim <- 100000
 # Simulate the future lifetime of the insured at time t using the Experience mortality table # nolint
 # x_base is the age of the insured at the base date, which is the starting point of the simulation # nolint
 # Every row is a policyholder and every column is a simulation # nolint
-sim <- t(mapply(function(x) rLife(n_sim, lt_exp, x, k = 12, type = "Tx"), pol2$x_base)) # nolint
+# It is simulated the future lifetime of the insured at time t (the age at the base date) # nolint
+sim <- t(mapply(function(x) rLife(n_sim, lt_exp, x, k = 1, type = "Tx"), pol2$x_base)) # nolint
 # Simulation of the present value of the benefit at time t using the simulated future lifetime # nolint
-sim_pv_ben_t <- sim_pv_benefit(i = i, prod = pol2$product, nyears = pol2$`n-year`, ben_amt = pol2$`benefit_amount`, t = pol2$t, sim = sim) # nolint
+sim_pv_ben_t <- sim_pv_benefit(i = i, prod = prod, nyears = nyears, ben_amt = ben_amt, t =t, sim = sim) # nolint
 # Simulation of the present value of the annuity at time t using the simulated future lifetime # nolint
-sim_pv_ann_t <- sim_pv_annuity(i = i, x = pol2$x, prod = pol2$product, nyears = pol2$`n-year`, t = pol2$t, sim = sim) # nolint
+sim_pv_ann_t <- sim_pv_annuity(i = i, x = pol2$x_base, prod = prod, nyears = nyears, t = t, sim = sim) # nolint
 # Simulation of the present value of the losses at time t using the simulated future lifetime # nolint
 sim_pv_loss_t <- sim_pv_ben_t + sim_pv_ann_t * 0.25 * pol2$gross_premium - sim_pv_ann_t * pol2$gross_premium # nolint
+# Write the results in a csv file
+# write.table(sim_pv_loss_t, file = paste0(path, "/sim_pv_loss_t.csv"), sep = ",", row.names = FALSE, col.names = TRUE, quote=TRUE) # nolint
 sim_pv_totloss_t <- colSums(sim_pv_loss_t)
 print(summary(sim_pv_totloss_t))
 hist(sim_pv_totloss_t, breaks = 50, main = "Distribution of the total losses at time t", xlab = "Total losses at time t") # nolint
+# Probability of lossing more than the total reserves
+count <- sum(sim_pv_totloss_t > tot_res)
+prob_loss <- count / n_sim
+print(paste0("Probability of losing more than the total reserves: ", round(prob_loss, 6)))
+
+count_exp <- sum(sim_pv_totloss_t > tot_res_exp)
+prob_loss_exp <- count_exp / n_sim
+print(paste0("Probability of losing more than the total reserves if experience mortality is used: ", round(prob_loss_exp, 6)))
+
+
 # Write the results in a csv file
 write.table(sim_pv_totloss_t, file = paste0(path, "/sim_pv_totloss_t.csv"), sep = ",", row.names = FALSE, col.names = TRUE, quote=TRUE) # nolint
 
