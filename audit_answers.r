@@ -213,7 +213,7 @@ write.table(pol2, file = paste0(path, "/pol2.csv"), sep = ",", row.names = FALSE
 # Sufficiency of the reserves
 # Simulations
 # Number of simulations
-n_sim <- 100000
+n_sim <- 601000
 # Simulate the future lifetime of the insured at time t using the Experience mortality table # nolint
 # x_base is the age of the insured at the base date, which is the starting point of the simulation # nolint
 # Every row is a policyholder and every column is a simulation # nolint
@@ -225,23 +225,20 @@ sim_pv_ben_t <- sim_pv_benefit(i = i, prod = prod, nyears = nyears, ben_amt = be
 sim_pv_ann_t <- sim_pv_annuity(i = i, x = pol2$x_base, prod = prod, nyears = nyears, t = t, sim = sim) # nolint
 # Simulation of the present value of the losses at time t using the simulated future lifetime # nolint
 sim_pv_loss_t <- sim_pv_ben_t + sim_pv_ann_t * 0.25 * pol2$gross_premium - sim_pv_ann_t * pol2$gross_premium # nolint
-# Write the results in a csv file
-# write.table(sim_pv_loss_t, file = paste0(path, "/sim_pv_loss_t.csv"), sep = ",", row.names = FALSE, col.names = TRUE, quote=TRUE) # nolint
 sim_pv_totloss_t <- colSums(sim_pv_loss_t)
-print(summary(sim_pv_totloss_t))
-hist(sim_pv_totloss_t, breaks = 50, main = "Distribution of the total losses at time t", xlab = "Total losses at time t") # nolint
+hist(sim_pv_totloss_t, breaks = 50, main = "Distribution of the present value of the total losses at time t", xlab = "Total losses at time t") # nolint
 # Probability of lossing more than the total reserves
 count <- sum(sim_pv_totloss_t > tot_res)
 prob_loss <- count / n_sim
 print(paste0("Probability of losing more than the total reserves: ", round(prob_loss, 6)))
 
-count_exp <- sum(sim_pv_totloss_t > tot_res_exp)
-prob_loss_exp <- count_exp / n_sim
-print(paste0("Probability of losing more than the total reserves if experience mortality is used: ", round(prob_loss_exp, 6)))
-
-
 # Write the results in a csv file
 write.table(sim_pv_totloss_t, file = paste0(path, "/sim_pv_totloss_t.csv"), sep = ",", row.names = FALSE, col.names = TRUE, quote=TRUE) # nolint
+
+# Delete the objects that are not needed
+rm(sim, sim_pv_ben_t, sim_pv_ann_t, sim_pv_loss_t)
+gc()
+
 
 # End timing
 end <- proc.time()
