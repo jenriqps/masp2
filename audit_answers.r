@@ -3,7 +3,6 @@
 # Universidad La Salle México
 # Profesor: José Enrique Pérez Salvador
 
-start <- proc.time()
 
 # Download and load the required packages
 options(repos = c(CRAN = "https://cloud.r-project.org/"))
@@ -209,6 +208,7 @@ tot_res_exp <- sum(pol2$res_exp_t)
 # Write the results in a csv file
 write.table(pol2, file = paste0(path, "/pol2.csv"), sep = ",", row.names = FALSE, col.names = TRUE, quote=TRUE) # nolint
 
+start <- proc.time()
 
 # Sufficiency of the reserves
 # Simulations
@@ -218,7 +218,7 @@ n_sim <- 601000
 # x_base is the age of the insured at the base date, which is the starting point of the simulation # nolint
 # Every row is a policyholder and every column is a simulation # nolint
 # It is simulated the future lifetime of the insured at time t (the age at the base date) # nolint
-sim <- t(mapply(function(x) rLife(n_sim, lt_exp, x, k = 1, type = "Tx"), pol2$x_base)) # nolint
+sim <- t(mapply(function(x) rLife(n_sim, lt_exp, x, k = 12, type = "Tx"), pol2$x_base)) # nolint
 # Simulation of the present value of the benefit at time t using the simulated future lifetime # nolint
 sim_pv_ben_t <- sim_pv_benefit(i = i, prod = prod, nyears = nyears, ben_amt = ben_amt, t =t, sim = sim) # nolint
 # Simulation of the present value of the annuity at time t using the simulated future lifetime # nolint
@@ -233,7 +233,7 @@ prob_loss <- count / n_sim
 print(paste0("Probability of losing more than the total reserves: ", round(prob_loss, 6)))
 
 # Write the results in a csv file
-write.table(sim_pv_totloss_t, file = paste0(path, "/sim_pv_totloss_t.csv"), sep = ",", row.names = FALSE, col.names = TRUE, quote=TRUE) # nolint
+# write.table(sim_pv_totloss_t, file = paste0(path, "/sim_pv_totloss_t.csv"), sep = ",", row.names = FALSE, col.names = TRUE, quote=TRUE) # nolint
 
 # Delete the objects that are not needed
 rm(sim, sim_pv_ben_t, sim_pv_ann_t, sim_pv_loss_t)
